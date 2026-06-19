@@ -1,0 +1,27 @@
+name: Kaleidae
+
+on:
+  push:
+    branches: [main, master]
+
+# Tells kaleidae.com that the node has live work.
+# Generated at scaffold time. Safe to delete if you'd rather use `kaleidae push`.
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Flip node from draft to published
+        env:
+          KALEIDAE_API: https://kaleidae.com
+          NODE_ID: n-8d7cacf0f0
+          PUSH_TOKEN: eyJuaWQiOiJuLThkN2NhY2YwZjAiLCJ0aWQiOiJ5b2Rld3UtNGZhMCIsImlhdCI6MTc4MTg5NDUxNn0.Mcz_wmWayII-XFriiQ1YbNcJvTC7Vc2C8FPxxJs640c
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          payload=$(jq -nc \
+            --arg t "$PUSH_TOKEN" \
+            --arg s "$GITHUB_SHA" \
+            --arg m "$COMMIT_MSG" \
+            '{pushToken: $t, commitSha: $s, message: $m}')
+          curl -fsSL -X POST "$KALEIDAE_API/api/nodes/$NODE_ID/push" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
